@@ -44,19 +44,82 @@ const getGif = async (word, locale = 'US', numberOfResults = 10) => {
     return gif;
 };
 
-app.get('/random-gif/', async (req, res) => {
+/**
+ * @swagger
+ *  :
+ *  get:
+ *     description: Récupère un mot aléatoire et son GIF associé
+ *     tags:
+ *        - random-gif
+ *     responses:
+ *        200:
+ *          description: Succès de la requête
+ */
+app.get('/', async (req, res) => {
     const word = await axios.get('https://random-word-api.herokuapp.com/word?number=1');
     const gif = await getGif(word.data[0]);
     res.status(200).send({ 'word': word.data[0], 'gif': gif });
 });
 
-app.get('/random-gif/:word', async (req, res) => {
+/**
+ * @swagger
+ *  /{word}:
+ *  get:
+ *     description: Récupère un GIF associé à un mot
+ *     tags:
+ *        - random-gif
+ *     responses:
+ *        200:
+ *          description: Succès de la requête
+ *     parameters:
+ *        - word:
+ *          name: word
+ *          description: Mot à rechercher
+ *          in: path
+ *          required: true
+ *          schema:
+ *            type: string
+ */
+app.get('/:word', async (req, res) => {
     const word = req.params.word;
     const gif = await getGif(word);
     res.status(200).send({ 'word': word, 'gif': gif });
 });
 
-app.get('/random-gif/:word/:locale/:numberOfResults', async (req, res) => {
+/**
+ * @swagger
+ *  /{word}/{locale}/{number-of-gifs-to-randomize}:
+ *  get:
+ *     description: Récupère un GIF associé à un mot
+ *     tags:
+ *        - random-gif
+ *     responses:
+ *        200:
+ *          description: Succès de la requête
+ *     parameters:
+ *        - word:
+ *          name: word
+ *          description: Mot à rechercher
+ *          in: path
+ *          required: true
+ *          schema:
+ *            type: string
+ *        - locale:
+ *          name: locale
+ *          description: Locale (ex => FR, US, etc.) de la recherche du GIF
+ *          in: path
+ *          required: true
+ *          schema:
+ *            type: string
+ *        - numberOfResults:
+ *          name: numberOfResults
+ *          description: Nombre de résultats à randomizer
+ *          in: path
+ *          required: true
+ *          schema:
+ *            type: integer
+ */
+app.get('/:word/:locale/:numberOfResults', async (req, res) => {
     const word = req.params.word;
     const locale = req.params.locale;
     const numberOfResults = req.params.numberOfResults;
@@ -64,7 +127,7 @@ app.get('/random-gif/:word/:locale/:numberOfResults', async (req, res) => {
     res.status(200).send({ 'word': word, 'gif': gif });
 });
 
-app.use('/swagger-random-gif', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
+app.use('/swagger', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 
 app.listen(PORT, () => {
     console.log(`Server listening on port ${PORT}`);
