@@ -18,8 +18,8 @@ const swaggerOptions = {
         },
     },
     apis: [
-        'index.js',
-        './routes/*.js',
+        './api/api.js',
+        './api/routes/*.js',
     ],
 };
 
@@ -32,13 +32,15 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }))
 
+app.use(express.static('./static/'))
+
 app.use('/random-gif', randomGif);
 
 /* redirects the default url to /docs */
-app.get('/', (req, res) => {
+/* app.get('/', (req, res) => {
     res.redirect('/swagger-random-gif');
 });
-
+ */
 app.use('/swagger-random-gif', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 
 module.exports = app;
