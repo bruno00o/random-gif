@@ -26,77 +26,35 @@ const getGif = async (word, locale = 'US', numberOfResults = 10) => {
  *     responses:
  *        200:
  *          description: Succès de la requête
+ *     parameters:
+ *       - in: query
+ *         name: request
+ *         schema:
+ *           type: string
+ *           description: Recherche à effectuer sur Tenor
+ *           example: "random"
+ *       - in: query
+ *         name: locale
+ *         schema:
+ *           type: string
+ *           description: Langue de la recherche à effectuer sur Tenor
+ *           example: "US"
+ *       - in: query
+ *         name: numberOfResults
+ *         schema:
+ *           type: string
+ *           description: Nombre de résultats à effectuer sur Tenor (pour la randomisation)
+ *           example: "10"
  */
 router.get('/', async (req, res) => {
-    const word = await axios.get('https://random-word-api.herokuapp.com/word?number=1');
-    const gif = await getGif(word.data[0]);
-    res.status(200).send({ 'word': word.data[0], 'gif': gif });
-});
+    const query = req.query;
+    const word = query.request && query.request != "" ? decodeURIComponent(query.request) : (await axios.get('https://random-word-api.herokuapp.com/word?number=1')).data[0];
+    const locale = query.locale && query.locale != "" && query.locale.match(/^[a-zA-Z]+$/) ? query.locale : 'US';
+    const numberOfResults = query.numberOfResults && query.numberOfResults != "" && query.numberOfResults.toString().match(/^[0-9]+$/) ? query.numberOfResults : 10;
 
-/**
- * @swagger
- *  /random-gif/{word}:
- *  get:
- *     description: Récupère un GIF associé à un mot
- *     tags:
- *        - random-gif
- *     responses:
- *        200:
- *          description: Succès de la requête
- *     parameters:
- *        - word:
- *          name: word
- *          description: Mot à rechercher
- *          in: path
- *          required: true
- *          schema:
- *            type: string
- */
-router.get('/:word', async (req, res) => {
-    const word = req.params.word;
-    const gif = await getGif(word);
-    res.status(200).send({ 'word': word, 'gif': gif });
-});
-
-/**
- * @swagger
- *  /random-gif/{word}/{locale}/{number-of-gifs-to-randomize}:
- *  get:
- *     description: Récupère un GIF associé à un mot
- *     tags:
- *        - random-gif
- *     responses:
- *        200:
- *          description: Succès de la requête
- *     parameters:
- *        - word:
- *          name: word
- *          description: Mot à rechercher
- *          in: path
- *          required: true
- *          schema:
- *            type: string
- *        - locale:
- *          name: locale
- *          description: Locale (ex => FR, US, etc.) de la recherche du GIF
- *          in: path
- *          required: true
- *          schema:
- *            type: string
- *        - numberOfResults:
- *          name: numberOfResults
- *          description: Nombre de résultats à randomizer
- *          in: path
- *          required: true
- *          schema:
- *            type: integer
- */
-router.get('/:word/:locale/:numberOfResults', async (req, res) => {
-    const word = req.params.word;
-    const locale = req.params.locale;
-    const numberOfResults = req.params.numberOfResults;
     const gif = await getGif(word, locale, numberOfResults);
-    res.status(200).send({ 'word': word, 'gif': gif });
+
+    res.status(200).send({ 'word': word, 'gif': gif, 'locale': locale, 'numberOfResults': numberOfResults });
 });
 
 module.exports = router;

@@ -13,7 +13,9 @@ const runAPI = (port = 8080) => {
     if (typeof (PhusionPassenger) !== 'undefined') {
         app.listen('passenger');
     } else {
-        app.listen(port);
+        app.listen(port, () => {
+            console.log(`API running on port ${port}`);
+        });
     }
 }
 
