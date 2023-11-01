@@ -23,8 +23,8 @@ const runAPI = (port = 8080) => {
 
 /* test to keep bot alive */
 const keepAlive = () => {
-    cron.schedule('*/20 * * * *', () => {
-        axios.get(process.env.URL_API);
+    cron.schedule('*/5 * * * *', async () => {
+        await axios.get(process.env.URL_API);
     });
 }
 
