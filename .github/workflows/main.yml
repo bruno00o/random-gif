@@ -37,4 +37,4 @@ jobs:
         password: ${{ secrets.SSH_PASSWORD }}
         key: ${{ secrets.SSH_KEY }}
         port: 22
-        script: source /home/mnfu4687/nodevenv/random-gif/16/bin/activate && cd /home/mnfu4687/random-gif && npm i && touch ./tmp/restart.txt
+        script: source /home/${{ secrets.SSH_USER }}/nodevenv/random-gif/16/bin/activate && cd /home/${{ secrets.SSH_USER }}/random-gif && npm i && touch ./tmp/restart.txt
