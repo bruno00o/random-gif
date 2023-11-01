@@ -28,13 +28,3 @@ jobs:
           **/.git*/**
           **/node_modules/**
           ./front/**
-
-    - name: npm install and restart app using ssh
-      uses: appleboy/ssh-action@v1.0.0
-      with:
-        host: ${{ secrets.SSH_HOST }}
-        username: ${{ secrets.SSH_USER }}
-        password: ${{ secrets.SSH_PASSWORD }}
-        key: ${{ secrets.SSH_KEY }}
-        port: 22
-        script: source /home/${{ secrets.SSH_USER }}/nodevenv/random-gif/16/bin/activate && cd /home/${{ secrets.SSH_USER }}/random-gif && npm i && touch ./tmp/restart.txt

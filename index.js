@@ -7,6 +7,7 @@ const app = require('./api/api');
 const refreshSlashCommands = require('./bot/refresh');
 const client = require('./bot/bot');
 const cron = require('node-cron');
+const axios = require('axios');
 
 const { token } = require('./config.json');
 
@@ -23,7 +24,7 @@ const runAPI = (port = 8080) => {
 /* test to keep bot alive */
 const keepAlive = () => {
     cron.schedule('*/20 * * * *', () => {
-        console.log('Keeping alive...');
+        axios.get(process.env.URL_API);
     });
 }
 
