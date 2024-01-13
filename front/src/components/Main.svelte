@@ -4,7 +4,7 @@
     >
         <h1 class="text-xl font-bold">random-gif</h1>
         <img
-            src="https://cdn.discordapp.com/avatars/1165309452845596855/35d4325879c205b77c103ce4dd06dab1.png?size=64"
+            src="https://cdn.discordapp.com/app-icons/1165309452845596855/68aa57e8ea6fe125f36e65254280b6ed.png?size=128"
             alt="random-gif"
             class="rounded-full w-20 h-20"
         />
