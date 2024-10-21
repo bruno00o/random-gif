@@ -1,14 +1,9 @@
-
-if (typeof (PhusionPassenger) !== 'undefined') {
-    PhusionPassenger.configure({ autoInstall: false });
-}
-
 const app = require('./api/api');
 const refreshSlashCommands = require('./bot/refresh');
 const client = require('./bot/bot');
-const cron = require('node-cron');
+require('dotenv').config();
 
-const { token } = require('./config.json');
+const token = process.env.BOT_TOKEN;
 
 const runAPI = (port = 8080) => {
     if (typeof (PhusionPassenger) !== 'undefined') {

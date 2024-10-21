@@ -1,30 +1,29 @@
-on: push
-name: 🚀 Deploy project on push
-jobs:
-  web-deploy:
-    name: 🎉 Deploy
-    runs-on: ubuntu-latest
-    steps:
-    - name: 🚚 Get latest code
-      uses: actions/checkout@v3
+name: Docker Images CI 💿
 
-    - name: Use Node.js 16
-      uses: actions/setup-node@v2
-      with:
-        node-version: '16'
-      
-    - name: 🔨 Build Project
-      run: |
-        npm run build-front
-    
-    - name: 📂 Sync files
-      uses: SamKirkland/FTP-Deploy-Action@v4.3.4
-      with:
-        server: ${{ secrets.ftp_server }}
-        username: ${{ secrets.ftp_username }}
-        password: ${{ secrets.ftp_password }}
-        exclude: |
-          **/.git*
-          **/.git*/**
-          **/node_modules/**
-          ./front/**
+on:
+  push:
+    branches: [ main ]
+
+env:
+  REGISTRY: "ghcr.io"
+  IMAGE_NAME: "random-gif"
+  TAG: prod
+
+jobs:
+  build-and-push:
+    name: Build and Push Docker Images 🐳
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 🚚 Get latest code
+        uses: actions/checkout@v4
+  
+      - name: 🏗️ Build Image
+        run: docker build -t ${{ env.REGISTRY }}/${{ github.actor }}/${{ env.IMAGE_NAME }}:${{ env.TAG }} -f ./app/Dockerfile ./app
+  
+      - name: 🔑 Log in to GitHub Container Registry
+        run: |
+          docker login --username ${{ github.actor }} --password ${{ secrets.GH_PAT }} ghcr.io
+  
+      - name: 🚀 Push Image to GitHub Container Registry
+        run: docker push ${{ env.REGISTRY }}/${{ github.actor }}/${{ env.IMAGE_NAME }}:${{ env.TAG }}

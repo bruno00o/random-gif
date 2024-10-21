@@ -1,6 +1,5 @@
 const express = require('express');
 const router = express.Router();
-const axios = require('axios');
 const env = require('dotenv').config();
 
 const tenorUrl = "https://tenor.googleapis.com/v2/search?"
@@ -9,8 +8,8 @@ const tenorKey = process.env.TENOR_KEY;
 const getGif = async (word, locale = 'US', numberOfResults = 10) => {
     const url = `${tenorUrl}key=${tenorKey}&q=${word}&limit=${numberOfResults}&media_filter=gif&locale=${locale}`;
 
-    const response = await axios.get(url);
-    const data = response.data;
+    const response = await fetch(url);
+    const data = await response.json();
     const gif = data.results[Math.floor(Math.random() * numberOfResults)].media_formats.gif.url;
 
     return gif;
@@ -20,35 +19,42 @@ const getGif = async (word, locale = 'US', numberOfResults = 10) => {
  * @swagger
  *  /random-gif/:
  *  get:
- *     description: Récupère un mot aléatoire et son GIF associé
+ *     description: Get a random GIF from Tenor API
  *     tags:
  *        - random-gif
  *     responses:
  *        200:
- *          description: Succès de la requête
+ *          description: Returns a random GIF from Tenor API
  *     parameters:
  *       - in: query
  *         name: request
  *         schema:
  *           type: string
- *           description: Recherche à effectuer sur Tenor
+ *           description: Request to search on Tenor
  *           example: "random"
  *       - in: query
  *         name: locale
  *         schema:
  *           type: string
- *           description: Langue de la recherche à effectuer sur Tenor
+ *           description: Language of the request to search on Tenor
  *           example: "US"
  *       - in: query
  *         name: numberOfResults
  *         schema:
  *           type: string
- *           description: Nombre de résultats à effectuer sur Tenor (pour la randomisation)
+ *           description: Number of results to search on Tenor (for randomization)
  *           example: "10"
  */
 router.get('/', async (req, res) => {
     const query = req.query;
-    const word = query.request && query.request != "" ? decodeURIComponent(query.request) : (await axios.get('https://random-word-api.herokuapp.com/word?number=1')).data[0];
+    let word;
+    if (query.request && query.request != "") {
+        word = decodeURIComponent(query.request);
+    } else {
+        const response = await fetch('https://random-word-api.herokuapp.com/word?number=1');
+        const data = await response.json();
+        word = data[0];
+    }
     const locale = query.locale && query.locale != "" && query.locale.match(/^[a-zA-Z]+$/) ? query.locale : 'US';
     const numberOfResults = query.numberOfResults && query.numberOfResults != "" && query.numberOfResults.toString().match(/^[0-9]+$/) ? query.numberOfResults : 10;
 
