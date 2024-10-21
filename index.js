@@ -6,13 +6,9 @@ require('dotenv').config();
 const token = process.env.BOT_TOKEN;
 
 const runAPI = (port = 8080) => {
-    if (typeof (PhusionPassenger) !== 'undefined') {
-        app.listen('passenger');
-    } else {
-        app.listen(port, () => {
-            console.log(`API running on port ${port}`);
-        });
-    }
+    app.listen(port, '0.0.0.0', () => {
+        console.log(`API running on port ${port}`);
+    });
 }
 
 (async () => {
