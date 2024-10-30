@@ -51,7 +51,8 @@ router.get('/', async (req, res) => {
     if (query.request && query.request != "") {
         word = decodeURIComponent(query.request);
     } else {
-        const response = await fetch('https://random-word.ryanrk.com/api/en/word/random');
+        const response = await fetch('http://tudo7370.odns.fr/v1/word');
+        // const response = await fetch('https://random-word.ryanrk.com/api/en/word/random');
         const data = await response.json();
         word = data[0];
     }
