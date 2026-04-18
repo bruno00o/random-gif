@@ -1,7 +1,7 @@
 import { Hono } from 'hono';
+import { generate } from 'random-words';
 
 const TENOR_URL = 'https://tenor.googleapis.com/v2/search';
-const RANDOM_WORD_URL = 'https://words.allmyapis.me/api/random_word';
 
 type TenorResult = {
     results: Array<{ media_formats: { gif: { url: string } } }>;
@@ -16,11 +16,7 @@ export const getGif = async (word: string, locale: string, limit: number): Promi
     return data.results[index].media_formats.gif.url;
 };
 
-const getRandomWord = async (): Promise<string> => {
-    const response = await fetch(RANDOM_WORD_URL);
-    const data = (await response.json()) as [string];
-    return data[0];
-};
+const getRandomWord = (): string => generate({ exactly: 1 })[0];
 
 const randomGif = new Hono();
 
@@ -29,7 +25,7 @@ randomGif.get('/', async (c) => {
     const rawLocale = c.req.query('locale');
     const rawLimit = c.req.query('numberOfResults');
 
-    const word = rawRequest ? decodeURIComponent(rawRequest) : await getRandomWord();
+    const word = rawRequest ? decodeURIComponent(rawRequest) : getRandomWord();
     const locale = rawLocale && /^[a-zA-Z]+$/.test(rawLocale) ? rawLocale : 'US';
     const limit = rawLimit && /^[0-9]+$/.test(rawLimit) ? Number(rawLimit) : 10;
 

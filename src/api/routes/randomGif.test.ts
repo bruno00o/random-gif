@@ -2,6 +2,10 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { Hono } from 'hono';
 import randomGif from './randomGif.js';
 
+vi.mock('random-words', () => ({
+    generate: vi.fn(() => ['dolphin']),
+}));
+
 const makeTenorResponse = (url: string) =>
     new Response(
         JSON.stringify({
@@ -42,9 +46,8 @@ describe('GET /random-gif', () => {
         expect(calledUrl).toContain('limit=5');
     });
 
-    it('falls back to a random word when no request is given', async () => {
+    it('falls back to a locally-generated random word when no request is given', async () => {
         const mockFetch = vi.mocked(fetch);
-        mockFetch.mockResolvedValueOnce(new Response(JSON.stringify(['dolphin'])));
         mockFetch.mockResolvedValueOnce(makeTenorResponse('https://tenor/x.gif'));
 
         const res = await app.request('/');
@@ -54,11 +57,11 @@ describe('GET /random-gif', () => {
         expect(body.word).toBe('dolphin');
         expect(body.locale).toBe('US');
         expect(body.numberOfResults).toBe(10);
+        expect(mockFetch).toHaveBeenCalledTimes(1);
     });
 
     it('rejects malicious locale and falls back to US', async () => {
         const mockFetch = vi.mocked(fetch);
-        mockFetch.mockResolvedValueOnce(new Response(JSON.stringify(['cat'])));
         mockFetch.mockResolvedValueOnce(makeTenorResponse('https://tenor/x.gif'));
 
         const res = await app.request('/?locale=FR;DROP');
@@ -69,7 +72,6 @@ describe('GET /random-gif', () => {
 
     it('ignores non-numeric numberOfResults', async () => {
         const mockFetch = vi.mocked(fetch);
-        mockFetch.mockResolvedValueOnce(new Response(JSON.stringify(['cat'])));
         mockFetch.mockResolvedValueOnce(makeTenorResponse('https://tenor/x.gif'));
 
         const res = await app.request('/?numberOfResults=abc');
