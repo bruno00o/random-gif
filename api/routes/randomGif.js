@@ -1,6 +1,5 @@
 const express = require('express');
 const router = express.Router();
-const env = require('dotenv').config();
 
 const tenorUrl = "https://tenor.googleapis.com/v2/search?"
 const tenorKey = process.env.TENOR_KEY;

@@ -1,12 +1,11 @@
 const { REST, Routes } = require('discord.js');
 const fs = require('node:fs');
 const path = require('node:path');
-require('dotenv').config();
-
-const clientId = process.env.CLIENT_ID;
-const token = process.env.BOT_TOKEN;
 
 const refreshSlashCommands = async () => {
+	const clientId = process.env.CLIENT_ID;
+	const token = process.env.BOT_TOKEN;
+
 	const commands = [];
 	const foldersPath = path.join(__dirname, 'commands');
 	const commandFolders = fs.readdirSync(foldersPath);
@@ -27,20 +26,18 @@ const refreshSlashCommands = async () => {
 
 	const rest = new REST().setToken(token);
 
-	(async () => {
-		try {
-			console.log(`Started refreshing ${commands.length} application (/) commands.`);
+	try {
+		console.log(`Started refreshing ${commands.length} application (/) commands.`);
 
-			const data = await rest.put(
-				Routes.applicationCommands(clientId),
-				{ body: commands },
-			);
+		const data = await rest.put(
+			Routes.applicationCommands(clientId),
+			{ body: commands },
+		);
 
-			console.log(`Successfully reloaded ${data.length} application (/) commands.`);
-		} catch (error) {
-			console.error(error);
-		}
-	})();
+		console.log(`Successfully reloaded ${data.length} application (/) commands.`);
+	} catch (error) {
+		console.error(error);
+	}
 }
 
 module.exports = refreshSlashCommands;

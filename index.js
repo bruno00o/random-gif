@@ -1,7 +1,8 @@
+require('dotenv').config();
+
 const app = require('./api/api');
 const refreshSlashCommands = require('./bot/refresh');
 const client = require('./bot/bot');
-require('dotenv').config();
 
 const token = process.env.BOT_TOKEN;
 

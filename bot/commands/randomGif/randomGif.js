@@ -1,4 +1,4 @@
-const { SlashCommandBuilder } = require('discord.js');
+const { SlashCommandBuilder, MessageFlags } = require('discord.js');
 
 module.exports = {
     cooldown: 1,
@@ -27,9 +27,9 @@ module.exports = {
         if (limit) {
             const limitNumber = parseInt(limit);
             if (isNaN(limitNumber) || limitNumber > 50 || limitNumber < 1) {
-                return await interaction.reply({ 
+                return await interaction.reply({
                     content: '❌ The limit must be a number between 1 and 50!',
-                    ephemeral: true
+                    flags: MessageFlags.Ephemeral
                 });
             }
         }
