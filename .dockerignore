@@ -7,4 +7,6 @@ README.md
 .env
 .gitignore
 static/
+dist/
 .github/
+**/*.test.ts
