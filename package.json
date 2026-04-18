@@ -1,24 +1,31 @@
 {
   "name": "random-gif",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "Discord bot that sends random GIFs via slash commands",
+  "type": "module",
+  "main": "dist/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "build-front": "cd front && npm install && npm run build"
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc",
+    "build-front": "cd front && npm install && npm run build",
+    "start": "node dist/index.js",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "cors": "^2.8.6",
+    "@hono/node-server": "^1.19.14",
+    "@hono/swagger-ui": "^0.6.1",
     "discord.js": "^14.26.3",
     "dotenv": "^17.4.2",
-    "express": "^5.2.1",
-    "swagger-jsdoc": "^6.2.8",
-    "swagger-ui-express": "^5.0.1"
+    "hono": "^4.12.14"
   },
   "devDependencies": {
-    "eslint": "^10.2.1"
+    "@types/node": "^25.6.0",
+    "tsx": "^4.21.0",
+    "typescript": "^6.0.3",
+    "vitest": "^4.1.4"
   }
 }
