@@ -79,4 +79,27 @@ describe('GET /random-gif', () => {
         const body = await res.json();
         expect(body.numberOfResults).toBe(10);
     });
+
+    it('clamps numberOfResults to [1, 50]', async () => {
+        const mockFetch = vi.mocked(fetch);
+        mockFetch.mockResolvedValueOnce(makeTenorResponse('https://tenor/a.gif'));
+        mockFetch.mockResolvedValueOnce(makeTenorResponse('https://tenor/b.gif'));
+
+        const tooHigh = await (await app.request('/?numberOfResults=9999')).json();
+        expect(tooHigh.numberOfResults).toBe(50);
+
+        const tooLow = await (await app.request('/?numberOfResults=0')).json();
+        expect(tooLow.numberOfResults).toBe(1);
+    });
+
+    it('returns 404 when Tenor has no results', async () => {
+        const mockFetch = vi.mocked(fetch);
+        mockFetch.mockResolvedValueOnce(new Response(JSON.stringify({ results: [] })));
+
+        const res = await app.request('/?request=zzzxxxnomatch');
+
+        expect(res.status).toBe(404);
+        const body = await res.json();
+        expect(body.error).toBe('No GIF found');
+    });
 });
