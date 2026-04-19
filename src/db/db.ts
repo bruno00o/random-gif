@@ -42,6 +42,12 @@ const initSchema = (db: DB) => {
             updated_at  INTEGER NOT NULL
         );
     `);
+
+    const cols = db.prepare('PRAGMA table_info(gif_history)').all() as { name: string }[];
+    if (!cols.some((c) => c.name === 'message_id')) {
+        db.exec('ALTER TABLE gif_history ADD COLUMN message_id TEXT');
+    }
+    db.exec('CREATE INDEX IF NOT EXISTS idx_history_message ON gif_history(message_id)');
 };
 
 export const purgeOldHistory = (db: DB, olderThanMs: number = ONE_YEAR_MS): number => {

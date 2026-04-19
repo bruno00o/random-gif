@@ -4,7 +4,7 @@ import type { BotClient } from '../bot.js';
 export const name = Events.InteractionCreate;
 
 export const execute = async (interaction: Interaction) => {
-    if (!interaction.isChatInputCommand()) return;
+    if (!interaction.isChatInputCommand() && !interaction.isMessageContextMenuCommand()) return;
 
     const client = interaction.client as BotClient;
     const command = client.commands.get(interaction.commandName);

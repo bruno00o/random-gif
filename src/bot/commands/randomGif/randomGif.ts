@@ -77,7 +77,8 @@ export const execute = async (interaction: ChatInputCommandInteraction) => {
     }
     const data = (await response.json()) as ApiResponse;
 
-    await interaction.reply(data.gif);
+    const reply = await interaction.reply({ content: data.gif, withResponse: true });
+    const messageId = reply.resource?.message?.id ?? null;
 
     try {
         const { db } = interaction.client as BotClient;
@@ -88,6 +89,7 @@ export const execute = async (interaction: ChatInputCommandInteraction) => {
             word_source: search ? 'user' : 'random',
             gif_url: data.gif,
             locale: data.locale,
+            message_id: messageId,
         });
     } catch (err) {
         console.error('Failed to record gif history:', err);

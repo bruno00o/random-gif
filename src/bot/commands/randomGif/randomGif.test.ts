@@ -12,6 +12,10 @@ type MockInteraction = {
     client: { db: DB };
 };
 
+const makeReplyResponse = (messageId: string | null = 'msg-123') => ({
+    resource: messageId ? { message: { id: messageId } } : null,
+});
+
 const makeInteraction = (
     opts: Record<string, string | null>,
     db: DB,
@@ -19,7 +23,7 @@ const makeInteraction = (
     guildId: string | null = 'guild-1',
 ): MockInteraction => ({
     options: { getString: (name: string) => opts[name] ?? null },
-    reply: vi.fn().mockResolvedValue(undefined),
+    reply: vi.fn().mockResolvedValue(makeReplyResponse()),
     user: { id: userId },
     guildId,
     client: { db },
@@ -61,7 +65,7 @@ describe('random-gif slash command', () => {
         );
     });
 
-    it('calls API, replies with the gif URL, and records history', async () => {
+    it('calls API, replies with the gif URL, and records history with message_id', async () => {
         const mockFetch = vi.mocked(fetch);
         mockFetch.mockResolvedValueOnce(
             new Response(
@@ -78,10 +82,14 @@ describe('random-gif slash command', () => {
             { search: 'space cat', locale: 'FR', limit: '10' },
             db,
         );
+        interaction.reply.mockResolvedValueOnce(makeReplyResponse('msg-abc'));
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         await execute(interaction as any);
 
-        expect(interaction.reply).toHaveBeenCalledWith('https://tenor/x.gif');
+        expect(interaction.reply).toHaveBeenCalledWith({
+            content: 'https://tenor/x.gif',
+            withResponse: true,
+        });
 
         const history = getUserHistory(db, 'user-1');
         expect(history).toHaveLength(1);
@@ -92,6 +100,7 @@ describe('random-gif slash command', () => {
             word_source: 'user',
             gif_url: 'https://tenor/x.gif',
             locale: 'FR',
+            message_id: 'msg-abc',
         });
     });
 

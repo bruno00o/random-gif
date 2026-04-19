@@ -1,6 +1,12 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { openDatabase, type DB } from './db.js';
-import { forgetUser, getUserHistory, getUserStats, recordGif } from './history.js';
+import {
+    forgetUser,
+    getByMessageId,
+    getUserHistory,
+    getUserStats,
+    recordGif,
+} from './history.js';
 import { setVisibility } from './preferences.js';
 
 describe('history', () => {
@@ -103,6 +109,27 @@ describe('history', () => {
             expect(stats.topWord).toEqual({ word: 'cat', count: 2 });
             expect(stats.userWords).toBe(3);
             expect(stats.randomWords).toBe(1);
+        });
+    });
+
+    describe('getByMessageId', () => {
+        it('returns null when no entry matches the message id', () => {
+            expect(getByMessageId(db, 'missing')).toBeNull();
+        });
+
+        it('returns the entry with the given message_id', () => {
+            recordGif(db, {
+                user_id: 'u1',
+                guild_id: null,
+                word: 'cat',
+                word_source: 'user',
+                gif_url: 'https://x/cat.gif',
+                locale: 'US',
+                message_id: 'msg-42',
+            });
+            const entry = getByMessageId(db, 'msg-42');
+            expect(entry?.word).toBe('cat');
+            expect(entry?.message_id).toBe('msg-42');
         });
     });
 

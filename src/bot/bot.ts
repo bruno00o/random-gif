@@ -2,17 +2,16 @@ import { readdir } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import {
-    ChatInputCommandInteraction,
     Client,
     Collection,
     GatewayIntentBits,
-    SlashCommandBuilder,
 } from 'discord.js';
 import type { DB } from '../db/db.js';
 
 export type BotCommand = {
-    data: SlashCommandBuilder | { name: string; toJSON: () => unknown };
-    execute: (interaction: ChatInputCommandInteraction) => Promise<unknown>;
+    data: { name: string; toJSON: () => unknown };
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    execute: (interaction: any) => Promise<unknown>;
     cooldown?: number;
 };
 

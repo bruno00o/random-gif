@@ -11,6 +11,7 @@ export type HistoryEntry = {
     gif_url: string;
     locale: string;
     created_at: number;
+    message_id: string | null;
 };
 
 export type NewHistoryEntry = {
@@ -21,12 +22,13 @@ export type NewHistoryEntry = {
     gif_url: string;
     locale: string;
     created_at?: number;
+    message_id?: string | null;
 };
 
 export const recordGif = (db: DB, entry: NewHistoryEntry): void => {
     db.prepare(
-        `INSERT INTO gif_history (user_id, guild_id, word, word_source, gif_url, locale, created_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?)`,
+        `INSERT INTO gif_history (user_id, guild_id, word, word_source, gif_url, locale, created_at, message_id)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
     ).run(
         entry.user_id,
         entry.guild_id,
@@ -35,7 +37,15 @@ export const recordGif = (db: DB, entry: NewHistoryEntry): void => {
         entry.gif_url,
         entry.locale,
         entry.created_at ?? Date.now(),
+        entry.message_id ?? null,
     );
+};
+
+export const getByMessageId = (db: DB, message_id: string): HistoryEntry | null => {
+    const row = db
+        .prepare('SELECT * FROM gif_history WHERE message_id = ? LIMIT 1')
+        .get(message_id) as HistoryEntry | undefined;
+    return row ?? null;
 };
 
 export const getUserHistory = (db: DB, user_id: string, limit = 10): HistoryEntry[] => {
