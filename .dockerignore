@@ -8,5 +8,10 @@ README.md
 .gitignore
 static/
 dist/
+data/
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
 .github/
 **/*.test.ts

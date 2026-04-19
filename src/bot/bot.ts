@@ -8,14 +8,18 @@ import {
     GatewayIntentBits,
     SlashCommandBuilder,
 } from 'discord.js';
+import type { DB } from '../db/db.js';
 
 export type BotCommand = {
-    data: SlashCommandBuilder;
+    data: SlashCommandBuilder | { name: string; toJSON: () => unknown };
     execute: (interaction: ChatInputCommandInteraction) => Promise<unknown>;
     cooldown?: number;
 };
 
-export type BotClient = Client & { commands: Collection<string, BotCommand> };
+export type BotClient = Client & {
+    commands: Collection<string, BotCommand>;
+    db: DB;
+};
 
 type BotEvent = {
     name: string;
@@ -61,11 +65,12 @@ const loadEvents = async (client: Client): Promise<void> => {
     }
 };
 
-export const createBot = async (): Promise<BotClient> => {
+export const createBot = async (db: DB): Promise<BotClient> => {
     const client = new Client({
         intents: [GatewayIntentBits.Guilds, GatewayIntentBits.DirectMessages],
     }) as BotClient;
 
+    client.db = db;
     client.commands = await loadCommands();
     await loadEvents(client);
 

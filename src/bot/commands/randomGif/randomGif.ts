@@ -5,6 +5,8 @@ import {
     MessageFlags,
     SlashCommandBuilder,
 } from 'discord.js';
+import type { BotClient } from '../../bot.js';
+import { recordGif } from '../../../db/history.js';
 
 export const data = new SlashCommandBuilder()
     .setName('random-gif')
@@ -39,9 +41,16 @@ export const data = new SlashCommandBuilder()
 
 export const cooldown = 1;
 
+type ApiResponse = {
+    word: string;
+    gif: string;
+    locale: string;
+    numberOfResults: number;
+};
+
 export const execute = async (interaction: ChatInputCommandInteraction) => {
-    const word = interaction.options.getString('search');
-    const locale = interaction.options.getString('locale');
+    const search = interaction.options.getString('search');
+    const localeOpt = interaction.options.getString('locale');
     const limit = interaction.options.getString('limit');
 
     if (limit) {
@@ -55,12 +64,32 @@ export const execute = async (interaction: ChatInputCommandInteraction) => {
     }
 
     const url = new URL(`${process.env.URL_API}/random-gif`);
-    if (word) url.searchParams.append('request', encodeURIComponent(word));
-    if (locale) url.searchParams.append('locale', locale);
+    if (search) url.searchParams.append('request', encodeURIComponent(search));
+    if (localeOpt) url.searchParams.append('locale', localeOpt);
     if (limit) url.searchParams.append('numberOfResults', limit);
 
     const response = await fetch(url.href);
-    const data = (await response.json()) as { gif: string };
+    if (!response.ok) {
+        return interaction.reply({
+            content: '❌ Could not find a GIF for that word. Try another one!',
+            flags: MessageFlags.Ephemeral,
+        });
+    }
+    const data = (await response.json()) as ApiResponse;
 
     await interaction.reply(data.gif);
+
+    try {
+        const { db } = interaction.client as BotClient;
+        recordGif(db, {
+            user_id: interaction.user.id,
+            guild_id: interaction.guildId,
+            word: data.word,
+            word_source: search ? 'user' : 'random',
+            gif_url: data.gif,
+            locale: data.locale,
+        });
+    } catch (err) {
+        console.error('Failed to record gif history:', err);
+    }
 };

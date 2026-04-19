@@ -4,3 +4,8 @@ config.json
 
 static
 dist
+data/
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
