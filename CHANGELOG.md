@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.1](https://github.com/bruno00o/random-gif/compare/v1.1.0...v1.1.1) (2026-04-19)
+
+
+### Bug Fixes
+
+* handle empty Tenor results and clamp numberOfResults to [1, 50] ([b838764](https://github.com/bruno00o/random-gif/commit/b838764eb344ebfee8e7f5a7b3183a3fd6bf7a5d))
+
 ## [1.1.0](https://github.com/bruno00o/random-gif/compare/v1.0.0...v1.1.0) (2026-04-18)
 
 
