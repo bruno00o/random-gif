@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.2.0](https://github.com/bruno00o/random-gif/compare/v1.1.1...v1.2.0) (2026-04-19)
+
+
+### Features
+
+* add 'Reveal word' message context menu to show the word behind any GIF ([6ab7269](https://github.com/bruno00o/random-gif/commit/6ab726900dba7d15fc52106989d5aa886a0c7c9e))
+* add per-user history, stats and privacy commands backed by SQLite ([fa2f9db](https://github.com/bruno00o/random-gif/commit/fa2f9db29c686bec37c6eb6a42350283007a5e64))
+
 ## [1.1.1](https://github.com/bruno00o/random-gif/compare/v1.1.0...v1.1.1) (2026-04-19)
 
 
