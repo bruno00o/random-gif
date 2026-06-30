@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.1](https://github.com/bruno00o/random-gif/compare/v1.2.0...v1.2.1) (2026-06-30)
+
+
+### Bug Fixes
+
+* **deps:** patch security advisories and update dependencies ([b91bf6c](https://github.com/bruno00o/random-gif/commit/b91bf6cd2e40521be6fee07b765693d5ee46373c))
+
 ## [1.2.0](https://github.com/bruno00o/random-gif/compare/v1.1.1...v1.2.0) (2026-04-19)
 
 
