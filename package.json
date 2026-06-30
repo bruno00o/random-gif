@@ -1,6 +1,6 @@
 {
   "name": "random-gif",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "description": "Discord bot that sends random GIFs via slash commands",
   "type": "module",
   "main": "dist/index.js",
