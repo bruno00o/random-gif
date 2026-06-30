@@ -6,10 +6,11 @@ vi.mock('random-words', () => ({
     generate: vi.fn(() => ['dolphin']),
 }));
 
-const makeTenorResponse = (url: string) =>
+const makeKlipyResponse = (url: string) =>
     new Response(
         JSON.stringify({
-            results: [{ media_formats: { gif: { url } } }],
+            result: true,
+            data: { data: [{ type: 'gif', file: { hd: { gif: { url } } } }] },
         }),
     );
 
@@ -17,7 +18,7 @@ describe('GET /random-gif', () => {
     const app = new Hono().route('/', randomGif);
 
     beforeEach(() => {
-        process.env.TENOR_KEY = 'test-key';
+        process.env.KLIPY_KEY = 'test-key';
         vi.stubGlobal('fetch', vi.fn());
     });
 
@@ -28,27 +29,27 @@ describe('GET /random-gif', () => {
 
     it('uses a provided search word and returns the gif', async () => {
         const mockFetch = vi.mocked(fetch);
-        mockFetch.mockResolvedValueOnce(makeTenorResponse('https://tenor/test.gif'));
+        mockFetch.mockResolvedValueOnce(makeKlipyResponse('https://klipy/test.gif'));
 
-        const res = await app.request('/?request=cat&locale=FR&numberOfResults=5');
+        const res = await app.request('/?request=cat&locale=FR&numberOfResults=12');
 
         expect(res.status).toBe(200);
         const body = await res.json();
         expect(body).toEqual({
             word: 'cat',
-            gif: 'https://tenor/test.gif',
+            gif: 'https://klipy/test.gif',
             locale: 'FR',
-            numberOfResults: 5,
+            numberOfResults: 12,
         });
         const calledUrl = mockFetch.mock.calls[0][0] as string;
         expect(calledUrl).toContain('q=cat');
-        expect(calledUrl).toContain('locale=FR');
-        expect(calledUrl).toContain('limit=5');
+        expect(calledUrl).toContain('locale=fr_FR');
+        expect(calledUrl).toContain('per_page=12');
     });
 
     it('falls back to a locally-generated random word when no request is given', async () => {
         const mockFetch = vi.mocked(fetch);
-        mockFetch.mockResolvedValueOnce(makeTenorResponse('https://tenor/x.gif'));
+        mockFetch.mockResolvedValueOnce(makeKlipyResponse('https://klipy/x.gif'));
 
         const res = await app.request('/');
 
@@ -62,7 +63,7 @@ describe('GET /random-gif', () => {
 
     it('rejects malicious locale and falls back to US', async () => {
         const mockFetch = vi.mocked(fetch);
-        mockFetch.mockResolvedValueOnce(makeTenorResponse('https://tenor/x.gif'));
+        mockFetch.mockResolvedValueOnce(makeKlipyResponse('https://klipy/x.gif'));
 
         const res = await app.request('/?locale=FR;DROP');
 
@@ -72,7 +73,7 @@ describe('GET /random-gif', () => {
 
     it('ignores non-numeric numberOfResults', async () => {
         const mockFetch = vi.mocked(fetch);
-        mockFetch.mockResolvedValueOnce(makeTenorResponse('https://tenor/x.gif'));
+        mockFetch.mockResolvedValueOnce(makeKlipyResponse('https://klipy/x.gif'));
 
         const res = await app.request('/?numberOfResults=abc');
 
@@ -82,8 +83,8 @@ describe('GET /random-gif', () => {
 
     it('clamps numberOfResults to [1, 50]', async () => {
         const mockFetch = vi.mocked(fetch);
-        mockFetch.mockResolvedValueOnce(makeTenorResponse('https://tenor/a.gif'));
-        mockFetch.mockResolvedValueOnce(makeTenorResponse('https://tenor/b.gif'));
+        mockFetch.mockResolvedValueOnce(makeKlipyResponse('https://klipy/a.gif'));
+        mockFetch.mockResolvedValueOnce(makeKlipyResponse('https://klipy/b.gif'));
 
         const tooHigh = await (await app.request('/?numberOfResults=9999')).json();
         expect(tooHigh.numberOfResults).toBe(50);
@@ -92,14 +93,37 @@ describe('GET /random-gif', () => {
         expect(tooLow.numberOfResults).toBe(1);
     });
 
-    it('returns 404 when Tenor has no results', async () => {
+    it('returns 404 when Klipy has no results', async () => {
         const mockFetch = vi.mocked(fetch);
-        mockFetch.mockResolvedValueOnce(new Response(JSON.stringify({ results: [] })));
+        mockFetch.mockResolvedValueOnce(new Response(JSON.stringify({ result: true, data: { data: [] } })));
 
         const res = await app.request('/?request=zzzxxxnomatch');
 
         expect(res.status).toBe(404);
         const body = await res.json();
         expect(body.error).toBe('No GIF found');
+    });
+
+    it('skips ad items and returns an actual gif', async () => {
+        const mockFetch = vi.mocked(fetch);
+        mockFetch.mockResolvedValueOnce(
+            new Response(
+                JSON.stringify({
+                    result: true,
+                    data: {
+                        data: [
+                            { type: 'ad', file: {} },
+                            { type: 'gif', file: { hd: { gif: { url: 'https://klipy/real.gif' } } } },
+                        ],
+                    },
+                }),
+            ),
+        );
+
+        const res = await app.request('/?request=cat');
+
+        expect(res.status).toBe(200);
+        const body = await res.json();
+        expect(body.gif).toBe('https://klipy/real.gif');
     });
 });
