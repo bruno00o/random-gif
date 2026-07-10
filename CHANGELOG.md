@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.2](https://github.com/bruno00o/random-gif/compare/v1.2.1...v1.2.2) (2026-06-30)
+
+
+### Bug Fixes
+
+* **api:** replace shut-down Tenor API with Klipy GIF provider ([1dfc3c1](https://github.com/bruno00o/random-gif/commit/1dfc3c18e325727745c0e2552e129e59837ec09f))
+
 ## [1.2.1](https://github.com/bruno00o/random-gif/compare/v1.2.0...v1.2.1) (2026-06-30)
 
 
