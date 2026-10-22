@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.3](https://github.com/bruno00o/random-gif/compare/v1.2.2...v1.2.3) (2026-10-22)
+
+
+### Bug Fixes
+
+* run on patched node 24.22.1 ([#6](https://github.com/bruno00o/random-gif/issues/6)) ([004a93d](https://github.com/bruno00o/random-gif/commit/004a93dc789023a36be7e7f2a09c43724848d586))
+
 ## [1.2.2](https://github.com/bruno00o/random-gif/compare/v1.2.1...v1.2.2) (2026-06-30)
 
 
