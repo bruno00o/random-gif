@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.0](https://github.com/bruno00o/random-gif/compare/v1.2.4...v1.3.0) (2026-10-30)
+
+
+### Features
+
+* add reroll button to random gif messages ([d70614b](https://github.com/bruno00o/random-gif/commit/d70614b728e3ce0d03981ae93a4ac7286df632f3))
+
 ## [1.2.4](https://github.com/bruno00o/random-gif/compare/v1.2.3...v1.2.4) (2026-10-30)
 
 
