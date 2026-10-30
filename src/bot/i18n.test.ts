@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { en, fr, messagesFor } from './i18n.js';
 import { data as forgetMe } from './commands/forgetMe/forgetMe.js';
+import { data as guess } from './commands/guess/guess.js';
 import { data as history } from './commands/history/history.js';
 import { data as privacy } from './commands/privacy/privacy.js';
 import { data as randomGif } from './commands/randomGif/randomGif.js';
@@ -39,6 +40,7 @@ describe('i18n', () => {
 
     it.each([
         ['forget-me', forgetMe],
+        ['guess', guess],
         ['history', history],
         ['privacy', privacy],
         ['random-gif', randomGif],

@@ -11,6 +11,7 @@ import {
 } from 'discord.js';
 import type { BotClient } from '../../bot.js';
 import { getByMessageId, recordGif, updateGifUrl } from '../../../db/history.js';
+import { fetchGif } from '../../fetchGif.js';
 import { en, fr, messagesFor, type Messages } from '../../i18n.js';
 
 export const data = new SlashCommandBuilder()
@@ -50,13 +51,6 @@ export const data = new SlashCommandBuilder()
 
 export const cooldown = 1;
 
-type ApiResponse = {
-    word: string;
-    gif: string;
-    locale: string;
-    numberOfResults: number;
-};
-
 const REROLL_POOL_SIZE = '50';
 
 const rerollRow = (t: Messages['randomGif']) =>
@@ -66,26 +60,6 @@ const rerollRow = (t: Messages['randomGif']) =>
             .setLabel(t.reroll)
             .setStyle(ButtonStyle.Secondary),
     );
-
-const fetchGif = async (
-    search: string | null,
-    locale: string | null,
-    limit: string | null,
-): Promise<ApiResponse | null> => {
-    const url = new URL(`${process.env.URL_API}/random-gif`);
-    if (search) url.searchParams.append('request', encodeURIComponent(search));
-    if (locale) url.searchParams.append('locale', locale);
-    if (limit) url.searchParams.append('numberOfResults', limit);
-
-    try {
-        const response = await fetch(url.href);
-        if (!response.ok) return null;
-        return (await response.json()) as ApiResponse;
-    } catch (err) {
-        console.error('Failed to fetch gif:', err);
-        return null;
-    }
-};
 
 export const execute = async (interaction: ChatInputCommandInteraction) => {
     const search = interaction.options.getString('search');

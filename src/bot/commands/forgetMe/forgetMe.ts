@@ -25,11 +25,11 @@ export const data = new SlashCommandBuilder()
 
 export const execute = async (interaction: ChatInputCommandInteraction) => {
     const { db } = interaction.client as BotClient;
-    const { history, preferences } = forgetUser(db, interaction.user.id);
+    const { history, preferences, games } = forgetUser(db, interaction.user.id);
 
     const t = messagesFor(interaction.locale).forgetMe;
-    const total = history + preferences;
-    const msg = total === 0 ? t.nothing : t.done(history, preferences);
+    const total = history + preferences + games;
+    const msg = total === 0 ? t.nothing : t.done(history, preferences, games);
 
     return interaction.reply({ content: msg, flags: MessageFlags.Ephemeral });
 };

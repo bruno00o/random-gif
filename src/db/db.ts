@@ -41,6 +41,29 @@ const initSchema = (db: DB) => {
             visibility  TEXT NOT NULL CHECK(visibility IN ('public', 'private')) DEFAULT 'private',
             updated_at  INTEGER NOT NULL
         );
+
+        CREATE TABLE IF NOT EXISTS guess_games (
+            message_id  TEXT PRIMARY KEY,
+            word        TEXT NOT NULL,
+            user_id     TEXT NOT NULL,
+            guild_id    TEXT,
+            gif_url     TEXT NOT NULL,
+            revealed    INTEGER NOT NULL DEFAULT 0,
+            status      TEXT NOT NULL CHECK(status IN ('open', 'won', 'given_up')) DEFAULT 'open',
+            winner_id   TEXT,
+            created_at  INTEGER NOT NULL
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_guess_games_created
+            ON guess_games(created_at);
+
+        CREATE TABLE IF NOT EXISTS guess_scores (
+            guild_id    TEXT NOT NULL,
+            user_id     TEXT NOT NULL,
+            points      INTEGER NOT NULL,
+            wins        INTEGER NOT NULL,
+            PRIMARY KEY (guild_id, user_id)
+        );
     `);
 
     const cols = db.prepare('PRAGMA table_info(gif_history)').all() as { name: string }[];

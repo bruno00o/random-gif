@@ -6,6 +6,7 @@ import {
     Client,
     Collection,
     GatewayIntentBits,
+    ModalSubmitInteraction,
 } from 'discord.js';
 import type { DB } from '../db/db.js';
 
@@ -14,6 +15,7 @@ export type BotCommand = {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     execute: (interaction: any) => Promise<unknown>;
     handleButton?: (interaction: ButtonInteraction) => Promise<unknown>;
+    handleModal?: (interaction: ModalSubmitInteraction) => Promise<unknown>;
     cooldown?: number;
 };
 
