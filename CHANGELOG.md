@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.4.0](https://github.com/bruno00o/random-gif/compare/v1.3.0...v1.4.0) (2026-10-30)
+
+
+### Features
+
+* translate the bot into french ([fa269dd](https://github.com/bruno00o/random-gif/commit/fa269dda5712fde04b7ee388aaeb7c6c10e75d01))
+
 ## [1.3.0](https://github.com/bruno00o/random-gif/compare/v1.2.4...v1.3.0) (2026-10-30)
 
 
