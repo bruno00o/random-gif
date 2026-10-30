@@ -6,6 +6,7 @@ import {
     getUserHistory,
     getUserStats,
     recordGif,
+    updateGifUrl,
 } from './history.js';
 import { setVisibility } from './preferences.js';
 
@@ -14,6 +15,40 @@ describe('history', () => {
 
     beforeEach(() => {
         db = openDatabase(':memory:');
+    });
+
+    describe('updateGifUrl', () => {
+        it('replaces the gif of the matching message without adding a row or changing its date', () => {
+            recordGif(db, {
+                user_id: 'u1',
+                guild_id: 'g1',
+                word: 'cat',
+                word_source: 'user',
+                gif_url: 'https://x/old.gif',
+                locale: 'US',
+                created_at: 1000,
+                message_id: 'm1',
+            });
+            recordGif(db, {
+                user_id: 'u1',
+                guild_id: 'g1',
+                word: 'dog',
+                word_source: 'user',
+                gif_url: 'https://x/dog.gif',
+                locale: 'US',
+                created_at: 2000,
+                message_id: 'm2',
+            });
+
+            updateGifUrl(db, 'm1', 'https://x/new.gif');
+
+            expect(getByMessageId(db, 'm1')).toMatchObject({
+                gif_url: 'https://x/new.gif',
+                created_at: 1000,
+            });
+            expect(getByMessageId(db, 'm2')?.gif_url).toBe('https://x/dog.gif');
+            expect(getUserStats(db, 'u1').total).toBe(2);
+        });
     });
 
     describe('recordGif + getUserHistory', () => {
