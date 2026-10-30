@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.5.0](https://github.com/bruno00o/random-gif/compare/v1.4.0...v1.5.0) (2026-10-30)
+
+
+### Features
+
+* add guess the word game ([20114ed](https://github.com/bruno00o/random-gif/commit/20114ed799110d7a5c61c7eff0f7387a34af6eb4))
+
 ## [1.4.0](https://github.com/bruno00o/random-gif/compare/v1.3.0...v1.4.0) (2026-10-30)
 
 
