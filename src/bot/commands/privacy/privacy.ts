@@ -7,18 +7,29 @@ import {
 } from 'discord.js';
 import type { BotClient } from '../../bot.js';
 import { getVisibility, setVisibility, type Visibility } from '../../../db/preferences.js';
+import { en, fr, messagesFor } from '../../i18n.js';
 
 export const data = new SlashCommandBuilder()
     .setName('privacy')
-    .setDescription('Control who can see your random-gif history and stats')
+    .setDescription(en.privacy.description)
+    .setDescriptionLocalizations({ fr: fr.privacy.description })
     .addStringOption((option) =>
         option
             .setName('visibility')
-            .setDescription('public = others can view · private = only you (default)')
+            .setDescription(en.privacy.visibilityOption)
+            .setDescriptionLocalizations({ fr: fr.privacy.visibilityOption })
             .setRequired(true)
             .addChoices(
-                { name: 'public', value: 'public' },
-                { name: 'private', value: 'private' },
+                {
+                    name: en.privacy.publicChoice,
+                    name_localizations: { fr: fr.privacy.publicChoice },
+                    value: 'public',
+                },
+                {
+                    name: en.privacy.privateChoice,
+                    name_localizations: { fr: fr.privacy.privateChoice },
+                    value: 'private',
+                },
             ),
     )
     .setContexts([
@@ -34,21 +45,19 @@ export const data = new SlashCommandBuilder()
 export const execute = async (interaction: ChatInputCommandInteraction) => {
     const visibility = interaction.options.getString('visibility', true) as Visibility;
     const { db } = interaction.client as BotClient;
+    const t = messagesFor(interaction.locale).privacy;
 
     const current = getVisibility(db, interaction.user.id);
     if (current === visibility) {
         return interaction.reply({
-            content: `Your history is already **${visibility}**.`,
+            content: visibility === 'public' ? t.alreadyPublic : t.alreadyPrivate,
             flags: MessageFlags.Ephemeral,
         });
     }
 
     setVisibility(db, interaction.user.id, visibility);
 
-    const msg =
-        visibility === 'public'
-            ? '🌍 Your history and stats are now **public**. Others can view them.'
-            : '🔒 Your history and stats are now **private**. Only you can view them.';
+    const msg = visibility === 'public' ? t.nowPublic : t.nowPrivate;
 
     return interaction.reply({ content: msg, flags: MessageFlags.Ephemeral });
 };

@@ -9,14 +9,17 @@ import {
 import type { BotClient } from '../../bot.js';
 import { getUserStats } from '../../../db/history.js';
 import { getVisibility } from '../../../db/preferences.js';
+import { en, fr, messagesFor } from '../../i18n.js';
 
 export const data = new SlashCommandBuilder()
     .setName('stats')
-    .setDescription('Show your random-gif stats')
+    .setDescription(en.stats.description)
+    .setDescriptionLocalizations({ fr: fr.stats.description })
     .addUserOption((option) =>
         option
             .setName('user')
-            .setDescription('Show another user\'s stats (only if they made it public)')
+            .setDescription(en.stats.userOption)
+            .setDescriptionLocalizations({ fr: fr.stats.userOption })
             .setRequired(false),
     )
     .setContexts([
@@ -33,10 +36,11 @@ export const execute = async (interaction: ChatInputCommandInteraction) => {
     const target = interaction.options.getUser('user') ?? interaction.user;
     const { db } = interaction.client as BotClient;
     const isSelf = target.id === interaction.user.id;
+    const t = messagesFor(interaction.locale).stats;
 
     if (!isSelf && getVisibility(db, target.id) === 'private') {
         return interaction.reply({
-            content: `🔒 ${target.username} keeps their stats private.`,
+            content: t.private(target.username),
             flags: MessageFlags.Ephemeral,
         });
     }
@@ -45,26 +49,24 @@ export const execute = async (interaction: ChatInputCommandInteraction) => {
 
     if (stats.total === 0) {
         return interaction.reply({
-            content: isSelf
-                ? '📭 You have no stats yet. Try `/random-gif`!'
-                : `📭 ${target.username} has no stats yet.`,
+            content: isSelf ? t.emptySelf : t.empty(target.username),
             flags: MessageFlags.Ephemeral,
         });
     }
 
     const embed = new EmbedBuilder()
-        .setTitle(`📊 ${isSelf ? 'Your' : `${target.username}'s`} stats`)
+        .setTitle(isSelf ? t.titleSelf : t.title(target.username))
         .setColor(0x5865f2)
         .addFields(
-            { name: 'Total GIFs', value: `${stats.total}`, inline: true },
-            { name: '📝 Searched', value: `${stats.userWords}`, inline: true },
-            { name: '🎲 Random', value: `${stats.randomWords}`, inline: true },
+            { name: t.total, value: `${stats.total}`, inline: true },
+            { name: t.searched, value: `${stats.userWords}`, inline: true },
+            { name: t.random, value: `${stats.randomWords}`, inline: true },
         );
 
     if (stats.topWord) {
         embed.addFields({
-            name: '🔥 Most searched word',
-            value: `**${stats.topWord.word}** (${stats.topWord.count}×)`,
+            name: t.topWord,
+            value: t.topWordValue(stats.topWord.word, stats.topWord.count),
         });
     }
 

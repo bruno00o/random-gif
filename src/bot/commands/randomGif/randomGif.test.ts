@@ -12,6 +12,7 @@ type MockInteraction = {
     deleteReply: ReturnType<typeof vi.fn>;
     followUp: ReturnType<typeof vi.fn>;
     user: { id: string };
+    locale: string;
     guildId: string | null;
     client: { db: DB };
 };
@@ -29,6 +30,7 @@ const makeInteraction = (
     deleteReply: vi.fn().mockResolvedValue(undefined),
     followUp: vi.fn().mockResolvedValue(undefined),
     user: { id: userId },
+    locale: 'en-US',
     guildId,
     client: { db },
 });
@@ -114,6 +116,34 @@ describe('random-gif slash command', () => {
         });
     });
 
+    it('labels the button and the errors in French for a French client', async () => {
+        const mockFetch = vi.mocked(fetch);
+        mockFetch.mockResolvedValueOnce(
+            new Response(
+                JSON.stringify({
+                    word: 'chat',
+                    gif: 'https://klipy/c.gif',
+                    locale: 'FR',
+                    numberOfResults: 10,
+                }),
+            ),
+        );
+        mockFetch.mockResolvedValueOnce(new Response('{}', { status: 404 }));
+
+        const success = makeInteraction({ search: 'chat', locale: null, limit: null }, db);
+        success.locale = 'fr';
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        await execute(success as any);
+        const [row] = success.editReply.mock.calls[0][0].components;
+        expect(row.toJSON().components[0].label).toBe('Relancer');
+
+        const failure = makeInteraction({ search: 'zzz', locale: null, limit: null }, db);
+        failure.locale = 'fr';
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        await execute(failure as any);
+        expect(failure.followUp.mock.calls[0][0].content).toContain('Aucun GIF');
+    });
+
     it('records random word_source when no search option is given', async () => {
         const mockFetch = vi.mocked(fetch);
         mockFetch.mockResolvedValueOnce(
@@ -172,6 +202,7 @@ describe('random-gif reroll button', () => {
         const interaction = {
             message: { id: messageId },
             user: { id: userId },
+            locale: 'en-US',
             client: { db },
             reply: vi.fn().mockResolvedValue(undefined),
             deferUpdate: vi.fn().mockResolvedValue(undefined),

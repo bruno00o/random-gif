@@ -9,9 +9,11 @@ import {
 import type { BotClient } from '../../bot.js';
 import { getByMessageId } from '../../../db/history.js';
 import { getVisibility } from '../../../db/preferences.js';
+import { en, fr, messagesFor } from '../../i18n.js';
 
 export const data = new ContextMenuCommandBuilder()
-    .setName('Reveal word')
+    .setName(en.revealWord.name)
+    .setNameLocalizations({ fr: fr.revealWord.name })
     .setType(ApplicationCommandType.Message)
     .setContexts([
         InteractionContextType.BotDM,
@@ -26,10 +28,11 @@ export const data = new ContextMenuCommandBuilder()
 export const execute = async (interaction: MessageContextMenuCommandInteraction) => {
     const { db } = interaction.client as BotClient;
     const target = interaction.targetMessage;
+    const t = messagesFor(interaction.locale).revealWord;
 
     if (target.author.id !== interaction.client.user?.id) {
         return interaction.reply({
-            content: '❌ This is not a random-gif message.',
+            content: t.notOurs,
             flags: MessageFlags.Ephemeral,
         });
     }
@@ -37,7 +40,7 @@ export const execute = async (interaction: MessageContextMenuCommandInteraction)
     const entry = getByMessageId(db, target.id);
     if (!entry) {
         return interaction.reply({
-            content: '❓ No word found for this GIF (probably posted before history tracking).',
+            content: t.unknown,
             flags: MessageFlags.Ephemeral,
         });
     }
@@ -45,14 +48,14 @@ export const execute = async (interaction: MessageContextMenuCommandInteraction)
     const isSelf = entry.user_id === interaction.user.id;
     if (!isSelf && getVisibility(db, entry.user_id) === 'private') {
         return interaction.reply({
-            content: '🔒 The searcher keeps their words private.',
+            content: t.private,
             flags: MessageFlags.Ephemeral,
         });
     }
 
-    const verb = entry.word_source === 'user' ? 'searched for' : 'got a random';
+    const reveal = entry.word_source === 'user' ? t.searched : t.random;
     return interaction.reply({
-        content: `🔍 <@${entry.user_id}> ${verb} **${entry.word}**`,
+        content: reveal(`<@${entry.user_id}>`, entry.word),
         flags: MessageFlags.Ephemeral,
     });
 };

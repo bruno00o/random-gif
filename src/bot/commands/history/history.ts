@@ -9,16 +9,19 @@ import {
 import type { BotClient } from '../../bot.js';
 import { getUserHistory } from '../../../db/history.js';
 import { getVisibility } from '../../../db/preferences.js';
+import { en, fr, messagesFor } from '../../i18n.js';
 
 const HISTORY_LIMIT = 10;
 
 export const data = new SlashCommandBuilder()
     .setName('history')
-    .setDescription('Show your recent random-gif history (last 10)')
+    .setDescription(en.history.description)
+    .setDescriptionLocalizations({ fr: fr.history.description })
     .addUserOption((option) =>
         option
             .setName('user')
-            .setDescription('Show another user\'s history (only if they made it public)')
+            .setDescription(en.history.userOption)
+            .setDescriptionLocalizations({ fr: fr.history.userOption })
             .setRequired(false),
     )
     .setContexts([
@@ -35,10 +38,11 @@ export const execute = async (interaction: ChatInputCommandInteraction) => {
     const target = interaction.options.getUser('user') ?? interaction.user;
     const { db } = interaction.client as BotClient;
     const isSelf = target.id === interaction.user.id;
+    const t = messagesFor(interaction.locale).history;
 
     if (!isSelf && getVisibility(db, target.id) === 'private') {
         return interaction.reply({
-            content: `🔒 ${target.username} keeps their history private.`,
+            content: t.private(target.username),
             flags: MessageFlags.Ephemeral,
         });
     }
@@ -47,24 +51,21 @@ export const execute = async (interaction: ChatInputCommandInteraction) => {
 
     if (history.length === 0) {
         return interaction.reply({
-            content: isSelf
-                ? '📭 You have no history yet. Try `/random-gif`!'
-                : `📭 ${target.username} has no history yet.`,
+            content: isSelf ? t.emptySelf : t.empty(target.username),
             flags: MessageFlags.Ephemeral,
         });
     }
 
     const lines = history.map((h) => {
         const when = `<t:${Math.floor(h.created_at / 1000)}:R>`;
-        const source = h.word_source === 'user' ? '📝' : '🎲';
-        return `${source} **${h.word}** (${h.locale}) · ${when}\n${h.gif_url}`;
+        const entry = h.word_source === 'user' ? t.searched : t.random;
+        return `${entry(h.word, h.locale, when)}\n${h.gif_url}`;
     });
 
     const embed = new EmbedBuilder()
-        .setTitle(`🕑 ${isSelf ? 'Your' : `${target.username}'s`} recent GIFs`)
+        .setTitle(isSelf ? t.titleSelf : t.title(target.username))
         .setDescription(lines.join('\n\n'))
-        .setColor(0x5865f2)
-        .setFooter({ text: '📝 = searched · 🎲 = random' });
+        .setColor(0x5865f2);
 
     return interaction.reply({
         embeds: [embed],
