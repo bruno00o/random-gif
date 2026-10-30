@@ -1,20 +1,20 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { MessageFlags } from 'discord.js';
-import { execute } from './randomGif.js';
+import { ButtonInteraction, MessageFlags } from 'discord.js';
+import { execute, handleButton } from './randomGif.js';
 import { openDatabase, type DB } from '../../../db/db.js';
-import { getUserHistory } from '../../../db/history.js';
+import { getByMessageId, getUserHistory, recordGif } from '../../../db/history.js';
 
 type MockInteraction = {
     options: { getString: (name: string) => string | null };
     reply: ReturnType<typeof vi.fn>;
+    deferReply: ReturnType<typeof vi.fn>;
+    editReply: ReturnType<typeof vi.fn>;
+    deleteReply: ReturnType<typeof vi.fn>;
+    followUp: ReturnType<typeof vi.fn>;
     user: { id: string };
     guildId: string | null;
     client: { db: DB };
 };
-
-const makeReplyResponse = (messageId: string | null = 'msg-123') => ({
-    resource: messageId ? { message: { id: messageId } } : null,
-});
 
 const makeInteraction = (
     opts: Record<string, string | null>,
@@ -23,7 +23,11 @@ const makeInteraction = (
     guildId: string | null = 'guild-1',
 ): MockInteraction => ({
     options: { getString: (name: string) => opts[name] ?? null },
-    reply: vi.fn().mockResolvedValue(makeReplyResponse()),
+    reply: vi.fn().mockResolvedValue(undefined),
+    deferReply: vi.fn().mockResolvedValue(undefined),
+    editReply: vi.fn().mockResolvedValue({ id: 'msg-123' }),
+    deleteReply: vi.fn().mockResolvedValue(undefined),
+    followUp: vi.fn().mockResolvedValue(undefined),
     user: { id: userId },
     guildId,
     client: { db },
@@ -82,13 +86,19 @@ describe('random-gif slash command', () => {
             { search: 'space cat', locale: 'FR', limit: '10' },
             db,
         );
-        interaction.reply.mockResolvedValueOnce(makeReplyResponse('msg-abc'));
+        interaction.editReply.mockResolvedValueOnce({ id: 'msg-abc' });
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         await execute(interaction as any);
 
-        expect(interaction.reply).toHaveBeenCalledWith({
+        expect(interaction.deferReply).toHaveBeenCalledOnce();
+        expect(interaction.editReply).toHaveBeenCalledWith({
             content: 'https://tenor/x.gif',
-            withResponse: true,
+            components: [expect.anything()],
+        });
+        const [row] = interaction.editReply.mock.calls[0][0].components;
+        expect(row.toJSON().components[0]).toMatchObject({
+            custom_id: 'random-gif:reroll',
+            label: 'Reroll',
         });
 
         const history = getUserHistory(db, 'user-1');
@@ -125,7 +135,7 @@ describe('random-gif slash command', () => {
         expect(history[0].word_source).toBe('random');
     });
 
-    it('replies with an ephemeral error when API returns non-200', async () => {
+    it('replaces the deferred reply with an ephemeral error when API returns non-200', async () => {
         const mockFetch = vi.mocked(fetch);
         mockFetch.mockResolvedValueOnce(new Response('{}', { status: 404 }));
 
@@ -133,9 +143,126 @@ describe('random-gif slash command', () => {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         await execute(interaction as any);
 
-        expect(interaction.reply).toHaveBeenCalledWith(
+        expect(interaction.deleteReply).toHaveBeenCalledOnce();
+        expect(interaction.followUp).toHaveBeenCalledWith(
             expect.objectContaining({ flags: MessageFlags.Ephemeral }),
         );
         expect(getUserHistory(db, 'user-1')).toHaveLength(0);
+    });
+
+    it('replaces the deferred reply with an ephemeral error when the API is unreachable', async () => {
+        vi.spyOn(console, 'error').mockImplementation(() => {});
+        vi.mocked(fetch).mockRejectedValueOnce(new Error('connection refused'));
+
+        const interaction = makeInteraction({ search: 'cat', locale: null, limit: null }, db);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        await execute(interaction as any);
+
+        expect(interaction.deleteReply).toHaveBeenCalledOnce();
+        expect(interaction.followUp).toHaveBeenCalledWith(
+            expect.objectContaining({ flags: MessageFlags.Ephemeral }),
+        );
+    });
+});
+
+describe('random-gif reroll button', () => {
+    let db: DB;
+
+    const makeButton = (userId = 'user-1', messageId = 'msg-1') => {
+        const interaction = {
+            message: { id: messageId },
+            user: { id: userId },
+            client: { db },
+            reply: vi.fn().mockResolvedValue(undefined),
+            deferUpdate: vi.fn().mockResolvedValue(undefined),
+            editReply: vi.fn().mockResolvedValue({ id: messageId }),
+            followUp: vi.fn().mockResolvedValue(undefined),
+        };
+        return { interaction, press: () => handleButton(interaction as unknown as ButtonInteraction) };
+    };
+
+    beforeEach(() => {
+        process.env.URL_API = 'http://api.test';
+        vi.stubGlobal('fetch', vi.fn());
+        db = openDatabase(':memory:');
+        recordGif(db, {
+            user_id: 'user-1',
+            guild_id: 'guild-1',
+            word: 'space cat',
+            word_source: 'user',
+            gif_url: 'https://klipy/old.gif',
+            locale: 'FR',
+            message_id: 'msg-1',
+        });
+    });
+
+    afterEach(() => {
+        vi.unstubAllGlobals();
+        vi.restoreAllMocks();
+    });
+
+    it('edits the message with a new gif for the same word and updates history', async () => {
+        const mockFetch = vi.mocked(fetch);
+        mockFetch.mockResolvedValueOnce(
+            new Response(
+                JSON.stringify({
+                    word: 'space cat',
+                    gif: 'https://klipy/new.gif',
+                    locale: 'FR',
+                    numberOfResults: 50,
+                }),
+            ),
+        );
+
+        const { interaction, press } = makeButton();
+        await press();
+
+        const requested = new URL(mockFetch.mock.calls[0][0] as string);
+        expect(decodeURIComponent(requested.searchParams.get('request') ?? '')).toBe('space cat');
+        expect(requested.searchParams.get('locale')).toBe('FR');
+        expect(requested.searchParams.get('numberOfResults')).toBe('50');
+
+        expect(interaction.deferUpdate).toHaveBeenCalledOnce();
+        expect(interaction.editReply).toHaveBeenCalledWith({
+            content: 'https://klipy/new.gif',
+            components: [expect.anything()],
+        });
+        expect(getByMessageId(db, 'msg-1')?.gif_url).toBe('https://klipy/new.gif');
+        expect(getUserHistory(db, 'user-1')).toHaveLength(1);
+    });
+
+    it('refuses anyone but the original requester without calling the API', async () => {
+        const { interaction, press } = makeButton('someone-else');
+        await press();
+
+        expect(interaction.reply).toHaveBeenCalledWith(
+            expect.objectContaining({ flags: MessageFlags.Ephemeral }),
+        );
+        expect(fetch).not.toHaveBeenCalled();
+        expect(interaction.reply.mock.calls[0][0].content).not.toContain('space cat');
+        expect(getByMessageId(db, 'msg-1')?.gif_url).toBe('https://klipy/old.gif');
+    });
+
+    it('explains when the history entry no longer exists', async () => {
+        const { interaction, press } = makeButton('user-1', 'forgotten');
+        await press();
+
+        expect(interaction.reply).toHaveBeenCalledWith(
+            expect.objectContaining({ flags: MessageFlags.Ephemeral }),
+        );
+        expect(fetch).not.toHaveBeenCalled();
+    });
+
+    it('keeps the current gif and warns ephemerally when the API fails', async () => {
+        vi.mocked(fetch).mockResolvedValueOnce(new Response('{}', { status: 500 }));
+
+        const { interaction, press } = makeButton();
+        await press();
+
+        expect(interaction.editReply).not.toHaveBeenCalled();
+        expect(interaction.followUp).toHaveBeenCalledWith(
+            expect.objectContaining({ flags: MessageFlags.Ephemeral }),
+        );
+        expect(getByMessageId(db, 'msg-1')?.gif_url).toBe('https://klipy/old.gif');
     });
 });

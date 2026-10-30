@@ -48,6 +48,10 @@ export const getByMessageId = (db: DB, message_id: string): HistoryEntry | null 
     return row ?? null;
 };
 
+export const updateGifUrl = (db: DB, message_id: string, gif_url: string): void => {
+    db.prepare('UPDATE gif_history SET gif_url = ? WHERE message_id = ?').run(gif_url, message_id);
+};
+
 export const getUserHistory = (db: DB, user_id: string, limit = 10): HistoryEntry[] => {
     return db
         .prepare(

@@ -2,6 +2,7 @@ import { readdir } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import {
+    ButtonInteraction,
     Client,
     Collection,
     GatewayIntentBits,
@@ -12,6 +13,7 @@ export type BotCommand = {
     data: { name: string; toJSON: () => unknown };
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     execute: (interaction: any) => Promise<unknown>;
+    handleButton?: (interaction: ButtonInteraction) => Promise<unknown>;
     cooldown?: number;
 };
 
