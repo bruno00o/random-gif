@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.4](https://github.com/bruno00o/random-gif/compare/v1.2.3...v1.2.4) (2026-10-30)
+
+
+### Bug Fixes
+
+* update dependencies to patch security alerts ([8528eb7](https://github.com/bruno00o/random-gif/commit/8528eb789bda7eee31f279c6a21dbc75091bfa2d))
+
 ## [1.2.3](https://github.com/bruno00o/random-gif/compare/v1.2.2...v1.2.3) (2026-10-22)
 
 
