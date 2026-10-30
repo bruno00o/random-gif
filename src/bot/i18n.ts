@@ -62,10 +62,36 @@ export const en = {
         nowPrivate: 'Your history and stats are now **private**. Only you can view them.',
     },
     forgetMe: {
-        description: 'Delete all your random-gif data (history and privacy preferences)',
+        description: 'Delete all your random-gif data (history, preferences and game scores)',
         nothing: 'Nothing to forget: you had no data stored.',
-        done: (history: number, preferences: number) =>
-            `Deleted **${history}** history ${plural(history, 'entry', 'entries')} and **${preferences}** ${plural(preferences, 'preference', 'preferences')}. You are forgotten.`,
+        done: (history: number, preferences: number, games: number) =>
+            `Deleted **${history}** history ${plural(history, 'entry', 'entries')}, **${preferences}** ${plural(preferences, 'preference', 'preferences')} and **${games}** game ${plural(games, 'record', 'records')}. You are forgotten.`,
+    },
+    guess: {
+        description: 'Play the guess-the-word game',
+        playDescription: 'Post a GIF and let everyone guess the word behind it',
+        leaderboardDescription: 'Show the best players of this server',
+        prompt: 'Guess the word',
+        wordLine: (mask: string, length: number) =>
+            `\`${mask}\` (${length} ${plural(length, 'letter', 'letters')})`,
+        guessButton: 'Guess',
+        hintButton: 'Hint',
+        giveUpButton: 'Give up',
+        modalTitle: 'Guess the word',
+        modalLabel: 'Your answer',
+        wrong: 'That is not the word. Try again.',
+        over: 'This game is over.',
+        giveUpForbidden: 'Only the person who started this game can give up.',
+        won: (user: string, word: string) => `${user} found the word: **${word}**`,
+        wonPoints: (user: string, word: string, points: number) =>
+            `${user} found the word: **${word}** (+${points} ${plural(points, 'point', 'points')})`,
+        gaveUp: (word: string) => `Nobody found it. The word was **${word}**.`,
+        noGif: 'Could not get a GIF right now. Try again in a moment.',
+        serverOnly: 'The leaderboard only exists in a server.',
+        leaderboardTitle: 'Best players',
+        leaderboardEmpty: 'Nobody has won a game on this server yet. Try `/guess play`.',
+        leaderboardLine: (rank: number, user: string, points: number, wins: number) =>
+            `${rank}. ${user}: ${points} ${plural(points, 'point', 'points')} (${wins} ${plural(wins, 'win', 'wins')})`,
     },
 };
 
@@ -127,10 +153,36 @@ export const fr: Messages = {
         nowPrivate: 'Ton historique et tes statistiques sont maintenant **privés**. Personne d’autre ne peut les voir.',
     },
     forgetMe: {
-        description: 'Supprime toutes tes données random-gif (historique et préférences)',
+        description: 'Supprime toutes tes données random-gif (historique, préférences et scores)',
         nothing: `Rien à oublier${NBSP}: aucune donnée enregistrée.`,
-        done: (history, preferences) =>
-            `Supprimé${NBSP}: **${history}** ${frenchPlural(history, 'entrée', 'entrées')} d’historique et **${preferences}** ${frenchPlural(preferences, 'préférence', 'préférences')}. Tes données sont oubliées.`,
+        done: (history, preferences, games) =>
+            `Supprimé${NBSP}: **${history}** ${frenchPlural(history, 'entrée', 'entrées')} d’historique, **${preferences}** ${frenchPlural(preferences, 'préférence', 'préférences')} et **${games}** ${frenchPlural(games, 'donnée', 'données')} de jeu. Tes données sont oubliées.`,
+    },
+    guess: {
+        description: 'Joue à deviner le mot',
+        playDescription: 'Poste un GIF et fais deviner le mot qui se cache derrière',
+        leaderboardDescription: 'Affiche les meilleurs joueurs et joueuses du serveur',
+        prompt: 'Devine le mot (en anglais)',
+        wordLine: (mask, length) =>
+            `\`${mask}\` (${length}${NBSP}${frenchPlural(length, 'lettre', 'lettres')})`,
+        guessButton: 'Deviner',
+        hintButton: 'Indice',
+        giveUpButton: 'Abandonner',
+        modalTitle: 'Devine le mot (en anglais)',
+        modalLabel: 'Ta réponse',
+        wrong: 'Ce n’est pas le bon mot. Réessaie.',
+        over: 'Cette partie est terminée.',
+        giveUpForbidden: 'Seule la personne qui a lancé la partie peut abandonner.',
+        won: (user, word) => `${user} a trouvé le mot${NBSP}: **${word}**`,
+        wonPoints: (user, word, points) =>
+            `${user} a trouvé le mot${NBSP}: **${word}** (+${points}${NBSP}${frenchPlural(points, 'point', 'points')})`,
+        gaveUp: (word) => `Personne n’a trouvé. Le mot était **${word}**.`,
+        noGif: 'Impossible d’obtenir un GIF pour le moment. Réessaie dans un instant.',
+        serverOnly: 'Le classement n’existe que sur un serveur.',
+        leaderboardTitle: 'Meilleurs scores',
+        leaderboardEmpty: 'Personne n’a encore gagné sur ce serveur. Essaie `/guess play`.',
+        leaderboardLine: (rank, user, points, wins) =>
+            `${rank}. ${user}${NBSP}: ${points}${NBSP}${frenchPlural(points, 'point', 'points')} (${wins}${NBSP}${frenchPlural(wins, 'victoire', 'victoires')})`,
     },
 };
 

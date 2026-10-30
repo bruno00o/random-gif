@@ -198,7 +198,7 @@ describe('history', () => {
             });
 
             const result = forgetUser(db, 'u1');
-            expect(result).toEqual({ history: 2, preferences: 1 });
+            expect(result).toEqual({ history: 2, preferences: 1, games: 0 });
 
             expect(getUserHistory(db, 'u1')).toHaveLength(0);
             expect(getUserHistory(db, 'u2')).toHaveLength(1);

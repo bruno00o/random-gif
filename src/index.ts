@@ -4,6 +4,7 @@ import { app } from './api/api.js';
 import { createBot } from './bot/bot.js';
 import { refreshSlashCommands } from './bot/refresh.js';
 import { openDatabase, purgeOldHistory } from './db/db.js';
+import { purgeOldGames } from './db/guess.js';
 
 const PORT = Number(process.env.PORT ?? 8080);
 const DATABASE_PATH = process.env.DATABASE_PATH ?? './data/random-gif.db';
@@ -12,6 +13,8 @@ const main = async () => {
     const db = openDatabase(DATABASE_PATH);
     const purged = purgeOldHistory(db);
     if (purged > 0) console.log(`Purged ${purged} history entries older than 1 year`);
+    const purgedGames = purgeOldGames(db);
+    if (purgedGames > 0) console.log(`Purged ${purgedGames} guess games older than 1 year`);
 
     await refreshSlashCommands();
 

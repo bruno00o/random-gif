@@ -102,7 +102,10 @@ export const getUserStats = (db: DB, user_id: string): UserStats => {
     return { total, topWord, userWords, randomWords };
 };
 
-export const forgetUser = (db: DB, user_id: string): { history: number; preferences: number } => {
+export const forgetUser = (
+    db: DB,
+    user_id: string,
+): { history: number; preferences: number; games: number } => {
     const tx = db.transaction(() => {
         const history = db
             .prepare('DELETE FROM gif_history WHERE user_id = ?')
@@ -110,7 +113,12 @@ export const forgetUser = (db: DB, user_id: string): { history: number; preferen
         const preferences = db
             .prepare('DELETE FROM user_preferences WHERE user_id = ?')
             .run(user_id).changes;
-        return { history, preferences };
+        const games =
+            db
+                .prepare('DELETE FROM guess_games WHERE user_id = ? OR winner_id = ?')
+                .run(user_id, user_id).changes +
+            db.prepare('DELETE FROM guess_scores WHERE user_id = ?').run(user_id).changes;
+        return { history, preferences, games };
     });
     return tx();
 };
