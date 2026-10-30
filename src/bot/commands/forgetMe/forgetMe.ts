@@ -7,10 +7,12 @@ import {
 } from 'discord.js';
 import type { BotClient } from '../../bot.js';
 import { forgetUser } from '../../../db/history.js';
+import { en, fr, messagesFor } from '../../i18n.js';
 
 export const data = new SlashCommandBuilder()
     .setName('forget-me')
-    .setDescription('Delete all your random-gif data (history + privacy preferences)')
+    .setDescription(en.forgetMe.description)
+    .setDescriptionLocalizations({ fr: fr.forgetMe.description })
     .setContexts([
         InteractionContextType.BotDM,
         InteractionContextType.Guild,
@@ -25,11 +27,9 @@ export const execute = async (interaction: ChatInputCommandInteraction) => {
     const { db } = interaction.client as BotClient;
     const { history, preferences } = forgetUser(db, interaction.user.id);
 
+    const t = messagesFor(interaction.locale).forgetMe;
     const total = history + preferences;
-    const msg =
-        total === 0
-            ? '✨ Nothing to forget — you had no data stored.'
-            : `🧹 Deleted **${history}** history entries and **${preferences}** preference${preferences === 1 ? '' : 's'}. You are forgotten.`;
+    const msg = total === 0 ? t.nothing : t.done(history, preferences);
 
     return interaction.reply({ content: msg, flags: MessageFlags.Ephemeral });
 };

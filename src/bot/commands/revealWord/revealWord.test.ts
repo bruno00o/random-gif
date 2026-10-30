@@ -8,6 +8,7 @@ import { setVisibility } from '../../../db/preferences.js';
 type MockInteraction = {
     targetMessage: { id: string; author: { id: string } };
     user: { id: string };
+    locale: string;
     client: { user: { id: string }; db: DB };
     reply: ReturnType<typeof vi.fn>;
 };
@@ -24,6 +25,7 @@ const makeInteraction = (
 ): MockInteraction => ({
     targetMessage: { id: messageId, author: { id: messageAuthorId } },
     user: { id: clickerId },
+    locale: 'en-US',
     client: { user: { id: BOT_ID }, db },
     reply: vi.fn().mockResolvedValue(undefined),
 });
@@ -132,6 +134,29 @@ describe('revealWord context menu', () => {
         expect(interaction.reply).toHaveBeenCalledWith(
             expect.objectContaining({
                 content: expect.stringContaining('searched for **mine**'),
+            }),
+        );
+    });
+
+    it('answers in French for a French client', async () => {
+        recordGif(db, {
+            user_id: 'searcher',
+            guild_id: null,
+            word: 'chat',
+            word_source: 'user',
+            gif_url: 'https://x/c.gif',
+            locale: 'FR',
+            message_id: 'msg-5',
+        });
+
+        const interaction = makeInteraction(db, { messageId: 'msg-5', clickerId: 'searcher' });
+        interaction.locale = 'fr';
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        await execute(interaction as any);
+
+        expect(interaction.reply).toHaveBeenCalledWith(
+            expect.objectContaining({
+                content: expect.stringContaining('a cherché **chat**'),
             }),
         );
     });
